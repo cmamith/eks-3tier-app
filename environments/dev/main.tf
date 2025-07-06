@@ -7,3 +7,9 @@ module "vpc" {
   private_subnet_cidrs = ["10.0.101.0/24", "10.0.102.0/24"]
   availability_zones  = ["ap-southeast-1a", "ap-southeast-1b"]
 }
+
+module "eks" {
+  source = "../../modules/eks"
+
+  name                = "dev"
+  subnet_ids = module.vpc.private_subne
