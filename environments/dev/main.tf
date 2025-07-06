@@ -11,5 +11,10 @@ module "vpc" {
 module "eks" {
   source = "../../modules/eks"
 
-  name                = "dev"
-  subnet_ids = module.vpc.private_subne
+  name       = "dev"
+  subnet_ids = module.vpc.private_subnet_ids
+
+  desired_capacity = 2
+  min_size         = 1
+  max_size         = 3
+}
