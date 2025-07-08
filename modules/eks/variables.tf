@@ -27,7 +27,7 @@ variable "max_size" {
   default     = 3
 }
 
-variable "vpc_id" {
-  description = "The VPC ID where EKS will be deployed"
-  type        = string
-}
+# variable "vpc_id" {
+#   description = "The VPC ID where EKS will be deployed"
+#   type        = string
+# }
