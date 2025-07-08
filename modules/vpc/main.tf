@@ -38,3 +38,8 @@ resource "aws_subnet" "private" {
         Name = "${var.name}-private-${count.index}"
     }
 }
+
+variable "vpc_id" {
+  description = "The VPC ID where EKS will be deployed"
+  type        = string
+}
