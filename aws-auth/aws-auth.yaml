@@ -10,3 +10,9 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
+  mapUsers: |
+    - userarn: arn:aws:iam::177206615793:user/terraform
+      username: terraform
+      groups:
+        - system:masters
+
