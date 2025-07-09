@@ -22,6 +22,7 @@ resource "aws_subnet" "public" {
     vpc_id = aws_vpc.main.id
     cidr_block = var.public_subnet_cidrs[count.index]
     availability_zone = element(var.availability_zones, count.index)
+    map_public_ip_on_launch = true 
     
     tags = {
         Name = "${var.name}-public-${count.index}"
@@ -39,7 +40,28 @@ resource "aws_subnet" "private" {
     }
 }
 
-variable "vpc_id" {
-  description = "The VPC ID where EKS will be deployed"
-  type        = string
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+
+  tags = {
+    Name = "${var.name}-public-rt"
+  }
 }
+
+resource "aws_route_table_association" "public" {
+  count          = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+
+# variable "vpc_id" {
+#   description = "The VPC ID where EKS will be deployed"
+#   type        = string
+# }
+
