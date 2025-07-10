@@ -20,3 +20,12 @@ module "eks" {
   min_size         = 1
   max_size         = 3
 }
+
+module "rds" {
+  source = "../../modules/rds"
+
+  name               = "dev"
+  subnet_ids         = module.vpc.private_subnet_ids
+  security_group_ids = [module.eks.node_security_group_id]
+  security_group_id  = module.eks.node_security_group_id
+}
