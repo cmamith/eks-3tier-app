@@ -86,3 +86,23 @@ resource "aws_eks_node_group" "eks_node_group" {
     aws_iam_role_policy_attachment.eks_registry_policy
   ]
 }
+
+resource "aws_security_group" "eks_node_group_sg" {
+  name        = "${var.name}-eks-node-group-sg"
+  description = "Security group for EKS node group"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
