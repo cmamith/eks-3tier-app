@@ -16,6 +16,6 @@ output "cluster_arn" {
 }
 
 output "node_security_group_id" {
-  description = "Security Group ID of the EKS worker nodes"
-  value       = aws_eks_node_group.eks_node_group.resources[0].autoscaling_groups[0].security_group
+  description = "Security Group ID of the EKS node group"
+  value       = aws_security_group.eks_node_group_sg.id
 }
