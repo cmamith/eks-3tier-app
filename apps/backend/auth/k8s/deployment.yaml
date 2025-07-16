@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth-container
+          image: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/auth-service:latest
+          ports:
+            - containerPort: 5001
+          env:
+            - name: DB_HOST
+              value: dev-db.clm46go82ob4.ap-southeast-1.rds.amazonaws.com
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password

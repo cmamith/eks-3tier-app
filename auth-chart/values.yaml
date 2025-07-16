@@ -1,0 +1,21 @@
+replicaCount: 5
+
+image:
+  repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/auth-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5001
+
+env:
+  DB_HOST: dev-db.clm46go82ob4.ap-southeast-1.rds.amazonaws.com
+
+
+serviceAccount:
+  create: false
+  name: ""
+
+resources: {}
