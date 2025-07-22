@@ -17,3 +17,11 @@ output "rds_arn" {
   description = "RDS ARN"
   value       = aws_db_instance.main.arn
 }
+
+# output "postgres_endpoint" {
+#   value = aws_db_instance.postgres.endpoint
+# }
+
+# output "postgres_instance_id" {
+#   value = aws_db_instance.postgres.id
+# }
