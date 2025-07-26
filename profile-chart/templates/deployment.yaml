@@ -26,19 +26,15 @@ spec:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: auth-db-secret
+                  name: user-db-secret
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: auth-db-secret
+                  name: user-db-secret
                   key: password
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: jwt-secret
                   key: secret_key
-          {{- if .Values.resources }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- end }}

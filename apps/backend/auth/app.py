@@ -1,8 +1,17 @@
 from flask import Flask, request, jsonify
 import pymysql
 import os
+import jwt
+import datetime
+import os
+
+
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
+
+
 
 # RDS connection details from environment variables
 DB_HOST = os.environ.get('DB_HOST')
@@ -40,27 +49,54 @@ def signup():
         if conn:
             conn.close()
 
+
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
     username = data.get("username")
     password = data.get("password")
-    
+
     conn = None
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+            cursor.execute(
+                "SELECT username, email, role FROM users WHERE username = %s AND password = %s",
+                (username, password)
+            )
             user = cursor.fetchone()
+
         if user:
-            return jsonify({"message": "Login successful"}), 200
+            payload = {
+                'username': user['username'],
+                'email': user['email'],
+                'role': user['role'],
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            }
+            token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
+            return jsonify({"token": token}), 200
         else:
             return jsonify({"message": "Invalid credentials"}), 401
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         if conn:
             conn.close()
+
+
+@app.route('/verify', methods=['GET'])
+def verify():
+    token = request.headers.get('Authorization')
+    try:
+        decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        return jsonify({"user": decoded["username"]}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 403
+
 
 
 @app.route('/health', methods=['GET'])

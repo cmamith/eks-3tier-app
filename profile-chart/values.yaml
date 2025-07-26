@@ -1,0 +1,20 @@
+replicaCount: 2
+
+image:
+  repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/profile-service
+  pullPolicy: Always
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5002
+
+env:
+  DB_HOST: dev-postgres-postgres-db.clm46go82ob4.ap-southeast-1.rds.amazonaws.com
+
+serviceAccount:
+  create: false
+  name: ""
+
+resources: {}
