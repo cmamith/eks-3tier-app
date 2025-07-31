@@ -2,8 +2,13 @@ from flask import Flask, request, jsonify
 import psycopg2
 import os
 import jwt
+from flask import Flask
+from flask_cors import CORS
 
 app = Flask(__name__)
+# open to any origin—adjust as needed for production
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
 
 # PostgreSQL DB connection from environment variables

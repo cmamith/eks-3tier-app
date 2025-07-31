@@ -1,0 +1,24 @@
+replicaCount: 2
+
+image:
+  repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/frontend-app
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+
+# If you have a custom domain & TLS:
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []   # e.g.
+            # - hosts:
+            #     - chart-example.local
+            #   secretName: chart-example-tls

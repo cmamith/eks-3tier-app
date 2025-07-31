@@ -4,10 +4,12 @@ import os
 import jwt
 import datetime
 import os
-
-
+from flask import Flask
+from flask_cors import CORS
 
 app = Flask(__name__)
+# open to any origin—adjust as needed for production
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
 
