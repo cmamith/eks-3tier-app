@@ -16,10 +16,9 @@ export default function Profile() {
       }
 
       try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_PROFILE_URL}/profile`,
-          { headers: { Authorization: token } }
-        );
+        const res = await axios.get('/profile/me', {
+             headers: { Authorization: token }   // your backend expects the raw token
+              });
         setProfile(res.data);
       } catch (err) {
         // Unauthorized or error: drop token and send back to login

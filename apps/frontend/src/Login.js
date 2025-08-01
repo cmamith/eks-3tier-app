@@ -13,10 +13,7 @@ export default function Login({ setToken }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post(
-        `${process.env.REACT_APP_AUTH_URL}/login`,
-        { username, password }
-      );
+      const res = await axios.post('/auth/login', { username, password });
       // store the JWT
       
 

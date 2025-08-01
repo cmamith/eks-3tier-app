@@ -1,0 +1,9 @@
+cat > .argocdignore <<'EOF'
+# ignore committed virtualenvs
+apps/backend/venv/**
+**/venv/**
+EOF
+
+git add .argocdignore
+git commit -m "Add .argocdignore to skip venv dirs"
+git push
