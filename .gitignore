@@ -3,3 +3,6 @@ terraform.tfstate
 terraform.tfstate.*
 *.tfplan
 crash.log
+# never commit virtualenvs
+venv/
+**/venv/
