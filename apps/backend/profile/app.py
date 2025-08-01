@@ -1,12 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 import psycopg2
 import os
 import jwt
-from flask import Flask
 from flask_cors import CORS
 
 app = Flask(__name__)
-# open to any origin—adjust as needed for production
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
@@ -25,31 +23,40 @@ def get_db_connection():
         dbname=DB_NAME
     )
 
-@app.route('/health', methods=['GET'])
+profile_bp = Blueprint("profile", __name__)
+
+@profile_bp.get("/")  # handles GET /profile
+def profile_root():
+    return jsonify({"ok": True, "service": "profile"}), 200
+
+@profile_bp.get("/health")
 def health():
     return jsonify({"status": "ok"}), 200
 
-@app.route('/profile', methods=['GET'])
+@profile_bp.get("")  # optional: also handle /profile (no trailing slash cases)
+def profile_empty():
+    return jsonify({"ok": True, "service": "profile"}), 200
+
+@profile_bp.get("/me")
 def profile():
     token = request.headers.get("Authorization")
     if not token:
         return jsonify({"error": "Token required"}), 401
-
     try:
         decoded = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-        # Build a richer profile object:
         return jsonify({
             "username": decoded.get("username"),
             "email":    decoded.get("email"),
             "role":     decoded.get("role"),
             "bio":      f"Hello, {decoded.get('username')}! This is your profile."
         }), 200
-
     except jwt.ExpiredSignatureError:
         return jsonify({"error": "Token expired"}), 401
     except jwt.InvalidTokenError:
         return jsonify({"error": "Invalid token"}), 403
 
+# Mount all profile routes at /profile
+app.register_blueprint(profile_bp, url_prefix="/profile")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5002)

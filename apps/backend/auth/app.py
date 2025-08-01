@@ -1,19 +1,14 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 import pymysql
 import os
 import jwt
 import datetime
-import os
-from flask import Flask
 from flask_cors import CORS
 
 app = Flask(__name__)
-# open to any origin—adjust as needed for production
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
-
-
 
 # RDS connection details from environment variables
 DB_HOST = os.environ.get('DB_HOST')
@@ -30,17 +25,29 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor
     )
 
-@app.route('/signup', methods=['POST'])
+auth_bp = Blueprint("auth", __name__)
+
+@auth_bp.get("/")  # handles GET /auth
+def auth_root():
+    return jsonify({"ok": True, "service": "auth"}), 200
+
+@auth_bp.get("/health")
+def health():
+    return jsonify({"status": "ok"}), 200
+
+@auth_bp.post("/signup")
 def signup():
     data = request.json
     username = data.get("username")
     password = data.get("password")
-    
-    conn = None  # Initialize here to avoid UnboundLocalError
+    conn = None
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+            cursor.execute(
+                "INSERT INTO users (username, password) VALUES (%s, %s)",
+                (username, password)
+            )
         conn.commit()
         return jsonify({"message": f"User {username} created"}), 201
     except pymysql.err.IntegrityError:
@@ -51,14 +58,11 @@ def signup():
         if conn:
             conn.close()
 
-
-
-@app.route('/login', methods=['POST'])
+@auth_bp.post("/login")  # POST /auth/login
 def login():
     data = request.json
     username = data.get("username")
     password = data.get("password")
-
     conn = None
     try:
         conn = get_db_connection()
@@ -68,7 +72,6 @@ def login():
                 (username, password)
             )
             user = cursor.fetchone()
-
         if user:
             payload = {
                 'username': user['username'],
@@ -80,15 +83,13 @@ def login():
             return jsonify({"token": token}), 200
         else:
             return jsonify({"message": "Invalid credentials"}), 401
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         if conn:
             conn.close()
 
-
-@app.route('/verify', methods=['GET'])
+@auth_bp.get("/verify")
 def verify():
     token = request.headers.get('Authorization')
     try:
@@ -99,11 +100,8 @@ def verify():
     except jwt.InvalidTokenError:
         return jsonify({"error": "Invalid token"}), 403
 
-
-
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({"status": "ok"}), 200
+# Mount all auth routes at /auth
+app.register_blueprint(auth_bp, url_prefix="/auth")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
