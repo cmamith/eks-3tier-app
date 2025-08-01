@@ -17,20 +17,20 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: auth-service
+                name: auth-service-service
                 port:
                   number: 80
           - path: /profile
             pathType: Prefix
             backend:
               service:
-                name: profile-service
+                name: profile-service-service
                 port:
                   number: 80
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: frontend-frontend
                 port:
                   number: 80
