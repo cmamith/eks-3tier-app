@@ -2,11 +2,11 @@ replicaCount: 2
 
 image:
   repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/frontend-app
-  tag: v7
+  tag: latest
   pullPolicy: Always
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
 
 # If you have a custom domain & TLS:
