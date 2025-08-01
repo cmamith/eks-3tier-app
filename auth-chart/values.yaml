@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/auth-service
   pullPolicy: Always
-  tag: "v7"
+  tag: "v8"
 
 service:
   type: ClusterIP

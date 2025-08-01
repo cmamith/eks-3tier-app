@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/profile-service
   pullPolicy: Always
-  tag: "v7"
+  tag: "v10"
 
 service:
   type: ClusterIP
