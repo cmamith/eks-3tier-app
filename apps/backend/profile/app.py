@@ -37,7 +37,7 @@ def health():
 def profile_empty():
     return jsonify({"ok": True, "service": "profile"}), 200
 
-@profile_bp.get("/me")
+@profile_bp.get("/profile")  # handles GET /profile/profile
 def profile():
     token = request.headers.get("Authorization")
     if not token:
