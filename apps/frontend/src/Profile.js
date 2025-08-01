@@ -16,7 +16,7 @@ export default function Profile() {
       }
 
       try {
-        const res = await axios.get('/profile/me', {
+        const res = await axios.get('/profile', {
              headers: { Authorization: token }   // your backend expects the raw token
               });
         setProfile(res.data);
