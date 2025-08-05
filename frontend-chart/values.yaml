@@ -2,7 +2,7 @@ replicaCount: 4
 
 image:
   repository: 177206615793.dkr.ecr.ap-southeast-1.amazonaws.com/frontend-app
-  tag: v8
+  tag: v9
   pullPolicy: Always
 
 service:
