@@ -39,16 +39,16 @@ jobs:
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
         with:
-          repository: your-org/gitops-repo            # CHANGE THIS to your actual GitOps repo (org/name)
+          repository: cmamith/gitops-apps           # CHANGE THIS to your actual GitOps repo (org/name)
           token: ${{ secrets.GITOPS_REPO_PAT }}       # Add this token in your repo secrets
-          path: gitops-repo
+          path: gitops-apps
 
       - name: Update image tag in values.yaml
         run: |
-          sed -i 's/tag: .*/tag: ${GITHUB_REF_NAME}/' gitops-repo/apps/frontend/values.yaml
+          sed -i 's/tag: .*/tag: ${GITHUB_REF_NAME}/' gitops-apps/apps/frontend/values.yaml
 
       - name: Commit and push updated values.yaml
-        working-directory: gitops-repo
+        working-directory: gitops-apps
         run: |
           git config user.email "cicd-bot@example.com"
           git config user.name "CI/CD Bot"
