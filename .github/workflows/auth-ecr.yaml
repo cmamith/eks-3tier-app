@@ -26,7 +26,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.AUTH_ECR_REPO }}:${GITHUB_REF_NAME} ./apps/auth-service
+          docker build -t ${{ secrets.AUTH_ECR_REPO }}:${GITHUB_REF_NAME} ./apps/backend/auth
 
       - name: Tag image for ECR
         run: |
