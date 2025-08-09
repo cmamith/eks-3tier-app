@@ -41,7 +41,8 @@ jobs:
         id: vars
         shell: bash
         run: |
-          case ${{ github.event.inputs.service_name }} in
+          set -euo pipefail
+          case "${{ github.event.inputs.service_name }}" in
             frontend)
               echo "ecr_repo=${{ secrets.FRONTEND_ECR_REPO }}" >> "$GITHUB_OUTPUT"
               echo "docker_path=apps/frontend" >> "$GITHUB_OUTPUT"
@@ -58,8 +59,30 @@ jobs:
               echo "values_path=gitops-apps/apps/profile-service/values.yaml" >> "$GITHUB_OUTPUT"
               ;;
             *)
-              echo "Invalid service name"; exit 1;;
+              echo "Invalid service_name: '${{ github.event.inputs.service_name }}'"; exit 1;;
           esac
+
+      - name: Debug chosen vars
+        run: |
+          echo "Service:      ${{ github.event.inputs.service_name }}"
+          echo "ECR repo:     ${{ steps.vars.outputs.ecr_repo }}"
+          echo "Docker path:  ${{ steps.vars.outputs.docker_path }}"
+          echo "Values path:  ${{ steps.vars.outputs.values_path }}"
+
+      # - name: Guard: ensure ECR repo & path exist
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+      #     if [ -z "${{ steps.vars.outputs.ecr_repo }}" ]; then
+      #       echo "ECR repo not set"
+      #       exit 1
+      #     fi
+      #     if [ ! -d "${{ steps.vars.outputs.docker_path }}" ]; then
+      #       echo "Missing path: ${{ steps.vars.outputs.docker_path }}"
+      #       exit 1
+      #     fi
+
+
 
 
       - name: Build Docker image
@@ -84,7 +107,7 @@ jobs:
       - name: Update image tag in values.yaml
         run: |
           sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
-          
+
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
         run: |
