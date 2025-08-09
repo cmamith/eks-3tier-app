@@ -37,25 +37,30 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set variables based on service
+      - name: Set service-specific variables
         id: vars
+        shell: bash
         run: |
-          if [ "${{ github.event.inputs.service_name }}" = "frontend" ]; then
-            echo "repo=${{ secrets.FRONTEND_ECR_REPO }}" >> $GITHUB_OUTPUT
-            echo "build_path=./apps/frontend" >> $GITHUB_OUTPUT
-            echo "values_path=apps/frontend/values.yaml" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.service_name }}" = "auth-service" ]; then
-            echo "repo=${{ secrets.AUTH_ECR_REPO }}" >> $GITHUB_OUTPUT
-            echo "build_path=./apps/backend/auth" >> $GITHUB_OUTPUT
-            echo "values_path=gitops-apps/apps/auth/values.yaml >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.service_name }}" = "profile-service" ]; then
-            echo "repo=${{ secrets.PROFILE_ECR_REPO }}" >> $GITHUB_OUTPUT
-            echo "build_path=./apps/" >> $GITHUB_OUTPUT
-            echo "values_path=gitops-apps/apps/profile/values.yaml" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid service_name!"
-            exit 1
-          fi
+          case ${{ github.event.inputs.service_name }} in
+            frontend)
+              echo "ecr_repo=${{ secrets.FRONTEND_ECR_REPO }}" >> "$GITHUB_OUTPUT"
+              echo "docker_path=apps/frontend" >> "$GITHUB_OUTPUT"
+              echo "values_path=gitops-apps/apps/frontend/values.yaml" >> "$GITHUB_OUTPUT"
+              ;;
+            auth-service)
+              echo "ecr_repo=${{ secrets.AUTH_ECR_REPO }}" >> "$GITHUB_OUTPUT"
+              echo "docker_path=apps/backend/auth" >> "$GITHUB_OUTPUT"
+              echo "values_path=gitops-apps/apps/auth-service/values.yaml" >> "$GITHUB_OUTPUT"
+              ;;
+            profile-service)
+              echo "ecr_repo=${{ secrets.PROFILE_ECR_REPO }}" >> "$GITHUB_OUTPUT"
+              echo "docker_path=apps/backend/profile" >> "$GITHUB_OUTPUT"
+              echo "values_path=gitops-apps/apps/profile-service/values.yaml" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Invalid service name"; exit 1;;
+          esac
+
 
       - name: Build Docker image
         run: |
@@ -78,8 +83,8 @@ jobs:
 
       - name: Update image tag in values.yaml
         run: |
-          sed -i 's/tag: .*/tag: '"${{ github.event.inputs.image_tag }}"'/' gitops-apps/${{ steps.vars.outputs.values_path }}
-
+          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
+          
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
         run: |
