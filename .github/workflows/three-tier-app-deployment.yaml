@@ -76,34 +76,31 @@ jobs:
           [ -n "${{ steps.vars.outputs.ecr_repo }}" ] || { echo "ECR repo not set"; exit 1; }
           [ -d "${{ steps.vars.outputs.docker_path }}" ] || { echo "Missing path: ${{ steps.vars.outputs.docker_path }}"; exit 1; }
 
+
+      - name: Export vars to env
+        run: |
+          echo "ECR_REPO=${{ steps.vars.outputs.ecr_repo }}" >> $GITHUB_ENV
+          echo "DOCKER_PATH=${{ steps.vars.outputs.docker_path }}" >> $GITHUB_ENV
+          echo "VALUES_PATH=${{ steps.vars.outputs.values_path }}" >> $GITHUB_ENV
+      
+
       - name: Build Docker image
         run: |
-          docker build -t ${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }} ${{ steps.vars.outputs.build_path }}
+          docker build -t "$ECR_REPO:${{ github.event.inputs.image_tag }}" "$DOCKER_PATH"
 
-      - name: Tag image for ECR
+      - name: Push Docker image
         run: |
-          docker tag ${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }}
+          docker push "$ECR_REPO:${{ github.event.inputs.image_tag }}"
 
-      - name: Push image to ECR
+      - name: Update image tag in GitOps values.yaml
         run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }}
-
-      - name: Checkout GitOps repo
-        uses: actions/checkout@v4
-        with:
-          repository: cmamith/gitops-apps
-          token: ${{ secrets.GITOPS_REPO_PAT }}
-          path: gitops-apps
-
-      - name: Update image tag in values.yaml
-        run: |
-          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
+          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "$VALUES_PATH"
 
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
         run: |
           git config user.email "cicd-bot@example.com"
           git config user.name "CI/CD Bot"
-          git add ${{ steps.vars.outputs.values_path }}
+          git add "$VALUES_PATH"
           git commit -m "Update ${{ github.event.inputs.service_name }} image tag to ${{ github.event.inputs.image_tag }} [CI skip]" || echo "No changes to commit"
           git push origin main
