@@ -112,13 +112,13 @@ jobs:
 
       - name: Debug values.yaml path
         run: |
-          ls -l "${{ steps.vars.outputs.values_path }}"
+          ls -l "gitops-apps/${{ steps.vars.outputs.values_path }}"
 
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
         run: |
           git config user.email "cicd-bot@example.com"
           git config user.name "CI/CD Bot"
-          git add "${{ steps.vars.outputs.values_path }}"
+          git add "gitops-apps/${{ steps.vars.outputs.values_path }}"
           git commit -m "Update ${{ github.event.inputs.service_name }} image tag to ${{ github.event.inputs.image_tag }} [CI skip]" || echo "No changes to commit"
           git push origin main
