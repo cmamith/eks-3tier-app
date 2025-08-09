@@ -108,17 +108,17 @@ jobs:
 
       - name: Update image tag in GitOps values.yaml
         run: |
-          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "gitops-apps/${{ steps.vars.outputs.values_path }}"
+          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
 
       - name: Debug values.yaml path
         run: |
-          ls -l "gitops-apps/${{ steps.vars.outputs.values_path }}"
+          ls -l "${{ steps.vars.outputs.values_path }}"
 
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
         run: |
           git config user.email "cicd-bot@example.com"
           git config user.name "CI/CD Bot"
-          git add "gitops-apps/${{ steps.vars.outputs.values_path }}"
+          git add "${{ steps.vars.outputs.values_path }}"
           git commit -m "Update ${{ github.event.inputs.service_name }} image tag to ${{ github.event.inputs.image_tag }} [CI skip]" || echo "No changes to commit"
           git push origin main
