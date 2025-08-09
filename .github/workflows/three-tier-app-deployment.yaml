@@ -69,21 +69,12 @@ jobs:
           echo "Docker path:  ${{ steps.vars.outputs.docker_path }}"
           echo "Values path:  ${{ steps.vars.outputs.values_path }}"
 
-      # - name: Guard: ensure ECR repo & path exist
-      #   shell: bash
-      #   run: |
-      #     set -euo pipefail
-      #     if [ -z "${{ steps.vars.outputs.ecr_repo }}" ]; then
-      #       echo "ECR repo not set"
-      #       exit 1
-      #     fi
-      #     if [ ! -d "${{ steps.vars.outputs.docker_path }}" ]; then
-      #       echo "Missing path: ${{ steps.vars.outputs.docker_path }}"
-      #       exit 1
-      #     fi
-
-
-
+      - name: ensure ECR repo & path exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -n "${{ steps.vars.outputs.ecr_repo }}" ] || { echo "ECR repo not set"; exit 1; }
+          [ -d "${{ steps.vars.outputs.docker_path }}" ] || { echo "Missing path: ${{ steps.vars.outputs.docker_path }}"; exit 1; }
 
       - name: Build Docker image
         run: |
