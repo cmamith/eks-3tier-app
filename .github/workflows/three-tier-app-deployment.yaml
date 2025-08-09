@@ -107,10 +107,15 @@ jobs:
           path: gitops-apps
 
       - name: Update image tag in GitOps values.yaml
+        working-directory: gitops-apps
         run: |
-          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
+          sed -i 's/^\s*tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
+            - name: Debug values.yaml path
+              run: |
+                ls -l "${{ steps.vars.outputs.values_path }}"
 
       - name: Debug values.yaml path
+        working-directory: gitops-apps
         run: |
           ls -l "${{ steps.vars.outputs.values_path }}"
 
