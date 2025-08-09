@@ -99,6 +99,11 @@ jobs:
         run: |
           docker push "${{ steps.vars.outputs.ecr_repo }}:${{ github.event.inputs.image_tag }}"
 
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
         with:
@@ -112,11 +117,21 @@ jobs:
         run: |
           sed -i -E "s/^[[:space:]]*tag:[[:space:]]*.*/  tag: ${{ github.event.inputs.image_tag }}/" "${{ steps.vars.outputs.values_path }}"
 
+      - name: Lint & validate Helm chart (optional but recommended)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_dir="$(dirname "${{ steps.decide.outputs.gitops_values }}")"
+          helm lint "gitops-apps/$chart_dir" --strict
+          helm template test "gitops-apps/$chart_dir" -f "gitops-apps/${{ steps.decide.outputs.gitops_values }}" \
+            | kubectl apply --dry-run=client -f -
 
       - name: Debug values.yaml path
         working-directory: gitops-apps
         run: |
           ls -l "${{ steps.vars.outputs.values_path }}"
+
+
 
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
