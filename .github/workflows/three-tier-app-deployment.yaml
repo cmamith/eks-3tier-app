@@ -1,0 +1,90 @@
+name: Build and Deploy Selected Service to ECR and ArgoCD
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: 'Service to build and deploy'
+        required: true
+        type: choice
+        options:
+          - frontend
+          - auth-service
+          - profile-service
+        default: frontend
+      image_tag:
+        description: 'Docker image tag to use'
+        required: true
+        default: 'v1'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-southeast-1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set variables based on service
+        id: vars
+        run: |
+          if [ "${{ github.event.inputs.service_name }}" = "frontend" ]; then
+            echo "repo=${{ secrets.FRONTEND_ECR_REPO }}" >> $GITHUB_OUTPUT
+            echo "build_path=./apps/frontend" >> $GITHUB_OUTPUT
+            echo "values_path=apps/frontend/values.yaml" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.service_name }}" = "auth-service" ]; then
+            echo "repo=${{ secrets.AUTH_ECR_REPO }}" >> $GITHUB_OUTPUT
+            echo "build_path=./apps/backend/auth" >> $GITHUB_OUTPUT
+            echo "values_path=gitops-apps/apps/auth/values.yaml >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.service_name }}" = "profile-service" ]; then
+            echo "repo=${{ secrets.PROFILE_ECR_REPO }}" >> $GITHUB_OUTPUT
+            echo "build_path=./apps/" >> $GITHUB_OUTPUT
+            echo "values_path=gitops-apps/apps/profile/values.yaml" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid service_name!"
+            exit 1
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }} ${{ steps.vars.outputs.build_path }}
+
+      - name: Tag image for ECR
+        run: |
+          docker tag ${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }}
+
+      - name: Push image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ steps.vars.outputs.repo }}:${{ github.event.inputs.image_tag }}
+
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: cmamith/gitops-apps
+          token: ${{ secrets.GITOPS_REPO_PAT }}
+          path: gitops-apps
+
+      - name: Update image tag in values.yaml
+        run: |
+          sed -i 's/tag: .*/tag: '"${{ github.event.inputs.image_tag }}"'/' gitops-apps/${{ steps.vars.outputs.values_path }}
+
+      - name: Commit and push updated values.yaml
+        working-directory: gitops-apps
+        run: |
+          git config user.email "cicd-bot@example.com"
+          git config user.name "CI/CD Bot"
+          git add ${{ steps.vars.outputs.values_path }}
+          git commit -m "Update ${{ github.event.inputs.service_name }} image tag to ${{ github.event.inputs.image_tag }} [CI skip]" || echo "No changes to commit"
+          git push origin main
