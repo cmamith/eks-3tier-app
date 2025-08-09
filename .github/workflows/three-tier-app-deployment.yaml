@@ -49,17 +49,17 @@ jobs:
            frontend)
             REPO_NAME="frontend-app"
             DOCKER_PATH="apps/frontend"
-            VALUES_PATH="apps/frontend/values.yaml"
+            VALUES_PATH="gitops-apps/apps/frontend/values.yaml"
             ;;
           auth-service)
             REPO_NAME="auth-service"
             DOCKER_PATH="apps/backend/auth"
-            VALUES_PATH="apps/auth-service/values.yaml"
+            VALUES_PATH="gitops-apps/apps/auth/values.yaml"
             ;;
           profile-service)
             REPO_NAME="profile-service"
             DOCKER_PATH="apps/backend/profile"
-            VALUES_PATH="apps/profile-service/values.yaml"
+            VALUES_PATH="gitops-apps/apps/profile/values.yaml"
             ;;
           *) echo "Invalid service"; exit 1;;
           esac
