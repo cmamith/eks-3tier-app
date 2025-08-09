@@ -42,59 +42,66 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          AWS_ACCT="${{ secrets.AWS_ACCOUNT_ID }}"
+          REGION="${{ env.AWS_REGION }}"
+
           case "${{ github.event.inputs.service_name }}" in
-            frontend)
-              echo "ecr_repo=${{ secrets.FRONTEND_ECR_REPO }}" >> "$GITHUB_OUTPUT"
-              echo "docker_path=apps/frontend" >> "$GITHUB_OUTPUT"
-              echo "values_path=gitops-apps/apps/frontend/values.yaml" >> "$GITHUB_OUTPUT"
-              ;;
-            auth-service)
-              echo "ecr_repo=${{ secrets.AUTH_ECR_REPO }}" >> "$GITHUB_OUTPUT"
-              echo "docker_path=apps/backend/auth" >> "$GITHUB_OUTPUT"
-              echo "values_path=gitops-apps/apps/auth-service/values.yaml" >> "$GITHUB_OUTPUT"
-              ;;
-            profile-service)
-              echo "ecr_repo=${{ secrets.PROFILE_ECR_REPO }}" >> "$GITHUB_OUTPUT"
-              echo "docker_path=apps/backend/profile" >> "$GITHUB_OUTPUT"
-              echo "values_path=gitops-apps/apps/profile-service/values.yaml" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "Invalid service_name: '${{ github.event.inputs.service_name }}'"; exit 1;;
+           frontend)
+            REPO_NAME="frontend-app"
+            DOCKER_PATH="apps/frontend"
+            VALUES_PATH="gitops-apps/apps/frontend/values.yaml"
+            ;;
+          auth-service)
+            REPO_NAME="auth-service"
+            DOCKER_PATH="apps/backend/auth"
+            VALUES_PATH="gitops-apps/apps/auth-service/values.yaml"
+            ;;
+          profile-service)
+            REPO_NAME="profile-service"
+            DOCKER_PATH="apps/backend/profile"
+            VALUES_PATH="gitops-apps/apps/profile-service/values.yaml"
+            ;;
+          *) echo "Invalid service"; exit 1;;
           esac
 
-      - name: Debug chosen vars
-        run: |
-          echo "Service:      ${{ github.event.inputs.service_name }}"
-          echo "ECR repo:     ${{ steps.vars.outputs.ecr_repo }}"
-          echo "Docker path:  ${{ steps.vars.outputs.docker_path }}"
-          echo "Values path:  ${{ steps.vars.outputs.values_path }}"
+          # Compose the FULL ECR URI: <acct>.dkr.ecr.<region>.amazonaws.com/<repo>
+          echo "ecr_repo=${AWS_ACCT}.dkr.ecr.${REGION}.amazonaws.com/${REPO_NAME}" >> "$GITHUB_OUTPUT"
+          echo "docker_path=${DOCKER_PATH}" >> "$GITHUB_OUTPUT"
+          echo "values_path=${VALUES_PATH}" >> "$GITHUB_OUTPUT"
 
-      - name: ensure ECR repo & path exist
-        shell: bash
-        run: |
-          set -euo pipefail
-          [ -n "${{ steps.vars.outputs.ecr_repo }}" ] || { echo "ECR repo not set"; exit 1; }
-          [ -d "${{ steps.vars.outputs.docker_path }}" ] || { echo "Missing path: ${{ steps.vars.outputs.docker_path }}"; exit 1; }
+        # - name: Debug chosen vars
+        #   run: |
+        #       echo "Service:      ${{ github.event.inputs.service_name }}"
+        #       echo "ECR repo:     ${{ steps.vars.outputs.ecr_repo }}"
+        #       echo "Docker path:  ${{ steps.vars.outputs.docker_path }}"
+        #       echo "Values path:  ${{ steps.vars.outputs.values_path }}"
+
+        #   - name: ensure ECR repo & path exist
+        #     shell: bash
+        #     run: |
+        #       set -euo pipefail
+        #       [ -n "${{ steps.vars.outputs.ecr_repo }}" ] || { echo "ECR repo not set"; exit 1; }
+        #       [ -d "${{ steps.vars.outputs.docker_path }}" ] || { echo "Missing path: ${{ steps.vars.outputs.docker_path }}"; exit 1; }
 
 
-      - name: Export vars to env
-        run: |
-          echo "ECR_REPO=${{ steps.vars.outputs.ecr_repo }}" >> $GITHUB_ENV
-          echo "DOCKER_PATH=${{ steps.vars.outputs.docker_path }}" >> $GITHUB_ENV
-          echo "VALUES_PATH=${{ steps.vars.outputs.values_path }}" >> $GITHUB_ENV
-      
+      # - name: Export vars to env
+      #   run: |
+      #     echo "ecr_repo=${AWS_ACCT}.dkr.ecr.${REGION}.amazonaws.com/${REPO_NAME}" >> "$GITHUB_OUTPUT"
+      #     echo "docker_path=${DOCKER_PATH}" >> "$GITHUB_OUTPUT"
+      #     echo "values_path=${VALUES_PATH}" >> "$GITHUB_OUTPUT"
+            
 
       - name: Build Docker image
         run: |
-          docker build -t "$ECR_REPO:${{ github.event.inputs.image_tag }}" "$DOCKER_PATH"
+          docker build -t "${{ steps.vars.outputs.ecr_repo }}:${{ github.event.inputs.image_tag }}" "${{ steps.vars.outputs.docker_path }}"
 
       - name: Push Docker image
         run: |
-          docker push "$ECR_REPO:${{ github.event.inputs.image_tag }}"
+          docker push "${{ steps.vars.outputs.ecr_repo }}:${{ github.event.inputs.image_tag }}"
 
       - name: Update image tag in GitOps values.yaml
         run: |
-          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "$VALUES_PATH"
+          sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
 
       - name: Commit and push updated values.yaml
         working-directory: gitops-apps
