@@ -99,6 +99,13 @@ jobs:
         run: |
           docker push "${{ steps.vars.outputs.ecr_repo }}:${{ github.event.inputs.image_tag }}"
 
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: cmamith/gitops-apps           # CHANGE THIS to your actual GitOps repo (org/name)
+          token: ${{ secrets.GITOPS_REPO_PAT }}       # Add this token in your repo secrets
+          path: gitops-apps
+
       - name: Update image tag in GitOps values.yaml
         run: |
           sed -i 's/^  tag: .*/  tag: '"${{ github.event.inputs.image_tag }}"'/' "${{ steps.vars.outputs.values_path }}"
