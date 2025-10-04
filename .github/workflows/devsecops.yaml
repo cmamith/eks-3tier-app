@@ -1,0 +1,22 @@
+name: DevSecOps Pipeline (Step 1 - Setup)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify Environment
+        run: |
+          echo " GitHub Actions environment ready!"
+          echo "Current directory:"
+          pwd
+          echo "Files in repo:"
+          ls -la
