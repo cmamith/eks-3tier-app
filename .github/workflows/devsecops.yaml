@@ -22,7 +22,7 @@ jobs:
   sonar-scan:
     name: SonarQube Scan
     runs-on: self-hosted
-    needs: sonar-scan
+    needs: setup
 
     steps:
       - name: Checkout Repository
@@ -84,7 +84,7 @@ jobs:
 # -----------------------------
   trivy-config-scan:
     runs-on: self-hosted
-    needs: trivy-config-scan
+    needs: sonar-scan
 
     steps:
       - name: 🧱 Checkout repository
