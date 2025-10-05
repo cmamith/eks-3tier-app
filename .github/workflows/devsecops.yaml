@@ -15,8 +15,43 @@ jobs:
 
       - name: Verify Environment
         run: |
-          echo " GitHub Actions environment ready!"
+          echo "git add .github/workflows/devsecops.yml GitHub Actions environment ready!"
           echo "Current directory:"
           pwd
           echo "Files in repo:"
           ls -la
+    
+  sonar-scan:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+    needs: setup   # ✅ ensures Sonar runs after setup
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java (required by SonarQube)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Sonar Scanner
+        run: |
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip sonar-scanner-cli-5.0.1.3006-linux.zip -d /opt
+          echo "/opt/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
+
+      - name: Run SonarQube Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=eks-3tier-app \
+            -Dsonar.projectName=eks-3tier-app \
+            -Dsonar.sources=. \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN
+
