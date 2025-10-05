@@ -148,14 +148,14 @@ jobs:
 
       - name: 🌐 Start Application Container (for scanning)
         run: |
-          docker run -d -p 8080:8080 --name authentication-service auth-service:latest
+          docker run -d -p 8090:8080 --name authentication-service auth-service:latest
           sleep 10
-          echo "App running on http://localhost:8080"
+          echo "App running on http://localhost:8090"
 
       - name: 🔒 Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
-          target: "http://localhost:8080"
+          target: "http://localhost:8090"
           cmd_options: "-a -T 10"   # '-a' = active scan, '-T 10' = timeout 10 mins
         continue-on-error: true
 
