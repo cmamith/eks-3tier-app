@@ -51,7 +51,7 @@ jobs:
             -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
             -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
             -v ${{ github.workspace }}:/usr/src \
-            sonarsource/sonar-scanner-cli:5.0.1.3006 \
+            sonarsource/sonar-scanner-cli:latest \
             sonar-scanner \
               -Dsonar.projectKey=eks-3tier-app \
               -Dsonar.projectName=eks-3tier-app \
