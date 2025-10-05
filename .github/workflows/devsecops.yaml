@@ -148,7 +148,7 @@ jobs:
 
       - name: 🌐 Start Application Container (for scanning)
         run: |
-          docker run -d -p 8080:8080 --name auth-service auth-service:latest
+          docker run -d -p 8080:8080 --name authentication-service authentication-service:latest
           sleep 10
           echo "App running on http://localhost:8080"
 
