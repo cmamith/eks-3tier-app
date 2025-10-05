@@ -143,6 +143,7 @@ jobs:
   zap-scan:
     runs-on: self-hosted
     needs: trivy-image-scan
+
     steps:
       - name: 🧱 Checkout repo
         uses: actions/checkout@v4
@@ -156,7 +157,14 @@ jobs:
           docker run -d --name authentication-service \
             --network devsecops-net \
             -p 8090:8080 auth-service:latest
-          sleep 15
+          echo "⏳ Waiting for app to start..."
+          for i in {1..30}; do
+            if docker exec authentication-service curl -s http://localhost:8080 > /dev/null; then
+              echo "✅ App is up!"
+              break
+            fi
+            sleep 5
+          done
 
       - name: 🕷️ Run OWASP ZAP Baseline Scan
         run: |
