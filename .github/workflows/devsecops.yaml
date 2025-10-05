@@ -80,8 +80,8 @@ jobs:
 
 
 # -----------------------------
-  # 3️⃣ Trivy IaC Config Scan (Cloud)
-  # -----------------------------
+# 3️⃣ Trivy IaC Config Scan (Cloud)
+# -----------------------------
   trivy-config-scan:
     runs-on: self-hosted
 
@@ -89,12 +89,11 @@ jobs:
       - name: 🧱 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🔍 Run Trivy Config Scan (HTML)
+      - name: 🔍 Run Trivy Config Scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: config
           format: table
-          template: '@/contrib/html.tpl'
           output: trivy-config-report.txt
           exit-code: 0
           severity: HIGH,CRITICAL
@@ -103,7 +102,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trivy-config-report
-          path: trivy-config-report.html
+          path: trivy-config-report.txt
+
 
   # -----------------------------
   # 4️⃣ Trivy Docker Image Scan (Local)
@@ -121,12 +121,11 @@ jobs:
           cd apps/backend/auth
           docker build -t auth-service:latest .
 
-      - name: 🔍 Run Trivy Image Scan (HTML)
+      - name: 🔍 Run Trivy Image Scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: auth-service:latest
           format: table
-          template: '@/contrib/html.tpl'
           output: trivy-image-report.txt
           exit-code: 0
           severity: HIGH,CRITICAL
@@ -135,9 +134,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trivy-image-report
-          path: trivy-image-report.html
-
-
+          path: trivy-image-report.txt
 
 
   # -----------------------------
