@@ -34,11 +34,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install SonarScanner (macOS)
+      - name: Install SonarScanner (macOS ARM)
         run: |
-            echo "🍺 Installing SonarScanner via Homebrew..."
-            brew install sonar-scanner
-            sonar-scanner --version  
+          echo "🍺 Installing SonarScanner ARM version..."
+          arch -arm64 brew update
+          arch -arm64 brew install sonar-scanner || echo "Already installed"
+          arch -arm64 sonar-scanner --version 
 
       - name: Run SonarQube Analysis (Local)
         env:
