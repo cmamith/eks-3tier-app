@@ -136,14 +136,48 @@ jobs:
           name: trivy-image-report
           path: trivy-image-report.txt
 
+  # -----------------------------
+  # 6️⃣ OWASP ZAP Dynamic Scan (DAST)
+  # -----------------------------
+  zap-scan:
+    runs-on: self-hosted
+    needs: trivy-image-scan
+    steps:
+      - name: 🧱 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🌐 Start Application Container (for scanning)
+        run: |
+          docker run -d -p 8080:8080 --name auth-service auth-service:latest
+          sleep 10
+          echo "App running on http://localhost:8080"
+
+      - name: 🔒 Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.11.0
+        with:
+          target: "http://localhost:8080"
+          cmd_options: "-a -T 10"   # '-a' = active scan, '-T 10' = timeout 10 mins
+        continue-on-error: true
+
+      - name: 📤 Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-zap-report
+          path: report_html.html
+
+      - name: 🧹 Cleanup Containers
+        if: always()
+        run: docker rm -f auth-service || true
+
+
 
   # -----------------------------
   # 5️⃣ Summary Stage
   # -----------------------------
-  summary:
-    runs-on: ubuntu-latest
-    needs: trivy-image-scan
-    steps:
-      - name: ✅ Summary
-        run: echo "✨ All scans completed successfully — SonarQube, Trivy Config, and Trivy Image."
+  # summary:
+  #   runs-on: ubuntu-latest
+  #   needs: trivy-image-scan
+  #   steps:
+  #     - name: ✅ Summary
+  #       run: echo "✨ All scans completed successfully — SonarQube, Trivy Config, and Trivy Image."
  
