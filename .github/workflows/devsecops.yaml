@@ -93,9 +93,9 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: config
-          format: template
+          format: table
           template: '@/contrib/html.tpl'
-          output: trivy-config-report.html
+          output: trivy-config-report.txt
           exit-code: 0
           severity: HIGH,CRITICAL
 
@@ -125,9 +125,9 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: auth-service:latest
-          format: template
+          format: table
           template: '@/contrib/html.tpl'
-          output: trivy-image-report.html
+          output: trivy-image-report.txt
           exit-code: 0
           severity: HIGH,CRITICAL
 
