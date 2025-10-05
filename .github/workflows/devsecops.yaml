@@ -146,6 +146,9 @@ jobs:
       - name: 🧱 Checkout repository
         uses: actions/checkout@v4
 
+      - name: 🧹 Cleanup old container (if exists)
+        run: docker rm -f authentication-service || true
+
       - name: 🌐 Start Application Container (for scanning)
         run: |
           docker run -d -p 8090:8080 --name authentication-service auth-service:latest
