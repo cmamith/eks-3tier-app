@@ -47,13 +47,24 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          sonar-scanner \
-            -Dsonar.projectKey=eks-3tier-app \
-            -Dsonar.projectName=eks-3tier-app \
-            -Dsonar.sources=. \
-            -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN
+          docker run --rm \
+            -e SONAR_HOST_URL=${{ secrets.SONAR_HOST_URL }} \
+            -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+            -v ${{ github.workspace }}:/usr/src \
+            sonarsource/sonar-scanner-cli:5.0.1.3006 \
+            sonar-scanner \
+              -Dsonar.projectKey=eks-3tier-app \
+              -Dsonar.projectName=eks-3tier-app \
+              -Dsonar.sources=. \
+              -Dsonar.sourceEncoding=UTF-8
+        # run: |
+        #   sonar-scanner \
+        #     -Dsonar.projectKey=eks-3tier-app \
+        #     -Dsonar.projectName=eks-3tier-app \
+        #     -Dsonar.sources=. \
+        #     -Dsonar.sourceEncoding=UTF-8 \
+        #     -Dsonar.host.url=$SONAR_HOST_URL \
+        #     -Dsonar.login=$SONAR_TOKEN
 
       - name: Wait for SonarQube Quality Gate Result
         env:
