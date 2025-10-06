@@ -156,10 +156,10 @@ jobs:
           docker network create devsecops-net || true
           docker run -d --name authentication-service \
             --network devsecops-net \
-            -p 8090:8080 auth-service:latest
+            -p 8090:5001 auth-service:latest
           echo "⏳ Waiting for app to start..."
           for i in {1..30}; do
-            if docker exec authentication-service curl -s http://localhost:8080 > /dev/null; then
+            if docker exec authentication-service curl -s http://localhost:5001 > /dev/null; then
               echo "✅ App is up!"
               break
             fi
@@ -171,7 +171,7 @@ jobs:
           docker run --rm -v $(pwd):/zap/wrk:rw \
             --network devsecops-net \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t http://authentication-service:8080 -r zap_report.html
+            zap-baseline.py -t http://authentication-service:5001 -r zap_report.html
 
       - name: 📤 Upload ZAP Report
         uses: actions/upload-artifact@v4
