@@ -189,28 +189,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: zap-dast-scan   # <-- replace with the last job name if different
     steps:
-      - name: 🧱 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 📥 Download All Reports
+      - name: Download All Reports
         uses: actions/download-artifact@v4
         with:
           path: reports
 
       - name: 🧠 Generate AI Security Summary (Simulated)
         run: |
-          echo "🔎 Aggregating security reports..."
+          echo " Aggregating security reports..."
           echo "# Security Summary - AI Insights" > security-summary.md
           echo "Generated on: $(date)" >> security-summary.md
           echo "" >> security-summary.md
 
-          echo "## 🧩 SonarQube Summary" >> security-summary.md
+          echo "## SonarQube Summary" >> security-summary.md
           echo "\`\`\`" >> security-summary.md
           echo "SonarQube static analysis completed. Review issues in dashboard for code smells and vulnerabilities." >> security-summary.md
           echo "\`\`\`" >> security-summary.md
           echo "" >> security-summary.md
 
-          echo "## 🧰 Trivy Config & Image Scan Summary" >> security-summary.md
+          echo "## Trivy Config & Image Scan Summary" >> security-summary.md
           echo "\`\`\`" >> security-summary.md
           cat reports/trivy-config-report/trivy-config-report.txt >> security-summary.md || echo "No config report found." >> security-summary.md
           echo "" >> security-summary.md
@@ -218,15 +218,15 @@ jobs:
           echo "\`\`\`" >> security-summary.md
           echo "" >> security-summary.md
 
-          echo "## 🌐 OWASP ZAP DAST Summary" >> security-summary.md
+          echo "## OWASP ZAP DAST Summary" >> security-summary.md
           echo "\`\`\`" >> security-summary.md
           grep -A 10 "WARN" reports/zap-scan-report/zap_report.html || echo "No warnings or findings detected." >> security-summary.md
           echo "\`\`\`" >> security-summary.md
           echo "" >> security-summary.md
 
-          echo "✅ Summary generated successfully!"
+          echo "Summary generated successfully!"
 
-      - name: 📤 Upload Security Summary
+      - name: Upload Security Summary
         uses: actions/upload-artifact@v4
         with:
           name: security-summary
