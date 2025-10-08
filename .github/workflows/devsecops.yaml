@@ -233,6 +233,35 @@ jobs:
           path: security-summary.md
 
 
+# -----------------------------
+# 7️⃣ AI-Powered Insights (GPT)
+# -----------------------------
+  ai-gpt-insights:
+    runs-on: ubuntu-latest
+    needs: ai-security-summary
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: Generate AI-assisted summary
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          pip install openai
+          python scripts/analyze_security.py reports security-summary-ai.md
+
+      - name: Post summary as PR comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "AI Security Summary"
+          path: security-summary-ai.md
+
 
 
   # -----------------------------
