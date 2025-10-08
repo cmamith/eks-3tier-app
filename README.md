@@ -113,3 +113,80 @@ Security scans with Trivy/SonarQube.
 Contributions to the roadmap are welcome. Please submit issues or pull requests for consideration.
 
 Security scans with Trivy/SonarQube.
+
+CI/CD and DevSecOps Pipeline
+
+This project implements an AI-Assisted DevSecOps pipeline powered by GitHub Actions, integrating static, dynamic, and infrastructure security scans — all automated end-to-end.
+
+Overview
+
+Every commit or Pull Request (PR) to the main branch triggers a multi-stage pipeline:
+
+Developer Commit / PR
+        ↓
+GitHub Actions Pipeline
+        ↓
+1️⃣ SonarQube (SAST & Code Quality)
+2️⃣ Trivy (IaC + Docker Image Scan)
+3️⃣ OWASP ZAP (DAST)
+4️⃣ AI Insights (GPT-5 powered summaries)
+        ↓
+Quality Gate Check → Merge / Block
+
+⚙️ Pipeline Stages
+Stage	Tool	            Purpose
+SAST    SonarQube	Detects vulnerabilities, code smells, and bugs in source code.
+IaC Scan  Trivy	A nalyzes Terraform, Helm, and Kubernetes YAML for  misconfigurations.
+ImageScan	Trivy	Scans container images for CVEs before pushing to ECR.
+DAST	   OWASP ZAP	Simulates real HTTP attacks on the running containerized app.
+AI Insights GPT-5	Parses scan reports and summarizes issues with fix recommendations.
+Quality Gate GitHub PR	Blocks merges if critical vulnerabilities or quality gate failures exist.
+
+
+How to Run Locally (Self-Hosted Runner)
+
+Start local services
+
+kubectl port-forward -n sonarqube svc/sonarqube 9000:9000
+docker-compose -f manifest/trivy/docker-compose.yaml up -d
+docker run -d --name zap -p 8090:8090 ghcr.io/zaproxy/zaproxy:stable
+
+
+Set secrets in GitHub
+
+SONAR_TOKEN=<your-sonarqube-token>
+SONAR_HOST_URL=http://localhost:9000
+OPENAI_API_KEY=<your-openai-api-key>
+
+
+Start your runner
+
+cd ~/actions-runner
+./run.sh
+
+
+Push or create a Pull Request
+The pipeline automatically:
+
+Runs full SAST, IaC, Image, and DAST scans
+
+Generates markdown and PDF reports
+
+Posts AI-generated summaries in your Pull Request
+
+Artifacts Generated
+File	Description
+trivy-config-report.txt	IaC scan result
+trivy-image-report.txt	Docker image vulnerability summary
+zap_report.html	OWASP ZAP runtime scan
+security-dashboard.md	Combined AI summary
+security-dashboard.pdf	Printable AI dashboard (optional)
+
+PR Integration
+
+Passed Quality Gate: Merge automatically allowed
+
+Critical Issues Detected: PR merge blocked
+
+AI Summary: Posted as a comment in the PR (via marocchino/sticky-pull-request-comment)
+
