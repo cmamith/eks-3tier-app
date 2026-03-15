@@ -37,4 +37,4 @@ module "rds_postgres" {
   subnet_ids         = module.vpc.private_subnet_ids
   security_group_ids = [module.eks.node_security_group_id]
   security_group_id  = module.eks.node_security_group_id
-}
+} 
