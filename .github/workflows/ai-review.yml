@@ -1,0 +1,38 @@
+name: AI Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required so the AI can post comments
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to generate a diff
+
+      - name: Generate PR Diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
+
+      # ---------------------------------------------------------
+      # CALLING YOUR CENTRALIZED DEVSECOPS REVIEWER ACTION
+      # ---------------------------------------------------------
+      - name: Run DevSecOps Crew
+        uses: cmamith/devsecops-pr-reviewer@main # <--- Points to this repository
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          diff_file: pr_diff.txt
+
+      - name: Post Comment to PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Posts the generated pr_comment.md back to the Pull Request
+          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
